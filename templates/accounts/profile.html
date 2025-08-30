@@ -1,0 +1,130 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Profile - LUMO{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 text-lumo">My Profile</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" value="{{ user.first_name }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" value="{{ user.last_name }}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.resume.id_for_label }}" class="form-label">Resume</label>
+                        {{ form.resume }}
+                        {% if form.resume.errors %}
+                            <div class="text-danger small">{{ form.resume.errors }}</div>
+                        {% endif %}
+                        {% if student.resume %}
+                            <div class="mt-2">
+                                <small class="text-muted">Current file: 
+                                    <a href="{{ student.resume.url }}" target="_blank" class="text-lumo">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>{{ student.resume.name|cut:"resumes/" }}
+                                    </a>
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Skills</label>
+                        <div class="row">
+                            {% for skill in form.skills %}
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check">
+                                        {{ skill.tag }}
+                                        <label class="form-check-label" for="{{ skill.id_for_label }}">
+                                            {{ skill.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-lumo">
+                            <i class="bi bi-check-circle me-2"></i>Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resume Status</h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>Resume uploaded
+                    </div>
+                    {% if student.resume_json_data %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-cpu-fill me-2"></i>Resume parsed and processed
+                        </div>
+                        <a href="{% url 'resume_preview' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye me-1"></i>Preview Parsed Data
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-clock me-2"></i>Resume processing pending
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>No resume uploaded
+                    </div>
+                    <p class="small text-muted">Upload your resume to get personalized internship recommendations.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if student.skills.all %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>My Skills</h5>
+            </div>
+            <div class="card-body">
+                {% for skill in student.skills.all %}
+                    <span class="badge badge-skill me-1 mb-1">{{ skill.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

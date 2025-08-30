@@ -1,0 +1,135 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Resume Preview - LUMO{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 text-lumo">Resume Preview</h1>
+    <a href="{% url 'resume_upload' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-cloud-upload me-1"></i>Upload New Resume
+    </a>
+</div>
+
+{% if student.resume_json_data %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Contact Information</h5>
+            </div>
+            <div class="card-body">
+                {% with contact=student.resume_json_data.contact_info %}
+                <div class="row">
+                    <div class="col-sm-3"><strong>Name:</strong></div>
+                    <div class="col-sm-9">{{ contact.name|default:"Not found" }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><strong>Email:</strong></div>
+                    <div class="col-sm-9">{{ contact.email|default:"Not found" }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><strong>Phone:</strong></div>
+                    <div class="col-sm-9">{{ contact.phone|default:"Not found" }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"><strong>LinkedIn:</strong></div>
+                    <div class="col-sm-9">{{ contact.linkedin|default:"Not found" }}</div>
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>Summary</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ student.resume_json_data.summary|default:"No summary found" }}</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Skills</h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume_json_data.skills %}
+                    {% for skill in student.resume_json_data.skills %}
+                        <span class="badge badge-skill me-1 mb-1">{{ skill }}</span>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No skills found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-briefcase me-2"></i>Experience</h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume_json_data.experience %}
+                    {% for exp in student.resume_json_data.experience %}
+                    <div class="mb-3">
+                        <h6 class="mb-1">{{ exp.title }}</h6>
+                        <p class="small text-muted mb-1">{{ exp.company|default:"" }}</p>
+                        <p class="small">{{ exp.description }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No experience found</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Education</h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume_json_data.education %}
+                    {% for edu in student.resume_json_data.education %}
+                    <div class="mb-3">
+                        <h6 class="mb-1">{{ edu.degree }}</h6>
+                        <p class="small text-muted mb-1">{{ edu.institution }}</p>
+                        <p class="small">{{ edu.dates }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No education found</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-code-square me-2"></i>Projects</h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume_json_data.projects %}
+                    {% for project in student.resume_json_data.projects %}
+                    <div class="mb-3">
+                        <h6 class="mb-1">{{ project.title }}</h6>
+                        <p class="small">{{ project.description }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No projects found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+    <h3 class="mt-3 text-muted">No Resume Data</h3>
+    <p class="text-muted">Please upload and process your resume first.</p>
+    <a href="{% url 'resume_upload' %}" class="btn btn-lumo">
+        <i class="bi bi-cloud-upload me-1"></i>Upload Resume
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,413 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Training Roadmap - LUMO{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary fw-bold">🎯 Training Roadmap</h2>
+                <div class="badge bg-info fs-6">Personalized for Your Recommended Internships</div>
+            </div>
+        </div>
+    </div>
+
+    {% if not has_recommendations %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">No Recommendations Yet!</h4>
+                <p>Upload your resume and add skills to get personalized training recommendations based on matching internships.</p>
+                <hr>
+                <a class="btn btn-primary" href="{% url 'resume_upload' %}">Upload Resume</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Training for Each Recommended Internship -->
+    {% for training in training_data %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">{{ training.internship.title }} at {{ training.internship.company }}</h4>
+                        <span class="badge bg-light text-primary">{{ training.match_percentage }}% Match</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Training Overview -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-question-circle-fill text-primary fs-1 mb-3"></i>
+                                    <h6 class="card-title">Quiz Questions</h6>
+                                    <span class="badge bg-primary">{{ training.quiz_questions|length }} Questions</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-chat-dots-fill text-warning fs-1 mb-3"></i>
+                                    <h6 class="card-title">Interview Questions</h6>
+                                    <span class="badge bg-warning">{{ training.interview_questions|length }} Questions</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-folder-fill text-success fs-1 mb-3"></i>
+                                    <h6 class="card-title">Recommended Projects</h6>
+                                    <span class="badge bg-success">{{ training.recommended_projects|length }} Projects</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quiz Questions Section -->
+                    {% if training.quiz_questions %}
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">📝 Quiz Questions</h5>
+                        <div class="row">
+                            {% for question in training.quiz_questions %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Question {{ forloop.counter }}</h6>
+                                        <p class="card-text">{{ question.question_text }}</p>
+                                        <div class="mb-3">
+                                            {% for key, option in question.options.items %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="q{{ training.internship.id }}_{{ forloop.parentloop.counter }}" id="q{{ training.internship.id }}_{{ forloop.parentloop.counter }}_{{ key }}" value="{{ key }}">
+                                                <label class="form-check-label" for="q{{ training.internship.id }}_{{ forloop.parentloop.counter }}_{{ key }}">
+                                                    {{ key }}. {{ option }}
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q{{ training.internship.id }}_{{ forloop.counter }}', '{{ question.correct_answer_key }}')">Check Answer</button>
+                                        <div id="result_q{{ training.internship.id }}_{{ forloop.counter }}" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Recommended Projects Section -->
+                    {% if training.recommended_projects %}
+                    <div class="mb-4">
+                        <h5 class="text-success mb-3">🚀 Recommended Projects</h5>
+                        <div class="row">
+                            {% for project in training.recommended_projects %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ project.title }}</h6>
+                                        <p class="card-text">{{ project.description }}</p>
+                                        {% if project.skills_to_gain.all %}
+                                        <div class="mb-3">
+                                            <small class="text-muted">Skills to gain:</small><br>
+                                            {% for skill in project.skills_to_gain.all %}
+                                            <span class="badge bg-light text-dark me-1">{{ skill.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#projectModal{{ training.internship.id }}_{{ forloop.counter }}">View Details</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Project Details Modal -->
+                            <div class="modal fade" id="projectModal{{ training.internship.id }}_{{ forloop.counter }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">{{ project.title }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Description:</strong></p>
+                                            <p>{{ project.description }}</p>
+                                            {% if project.skills_to_gain.all %}
+                                            <p><strong>Skills you'll gain:</strong></p>
+                                            <div class="mb-3">
+                                                {% for skill in project.skills_to_gain.all %}
+                                                <span class="badge bg-primary me-1">{{ skill.name }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            <div class="alert alert-info">
+                                                <strong>💡 Tip:</strong> Building this project will help you stand out for the {{ training.internship.title }} position!
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-success" onclick="startProject('{{ project.id }}', '{{ project.title }}')">Start Project</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Interview Questions Section -->
+                    {% if training.interview_questions %}
+                    <div class="mb-4">
+                        <h5 class="text-warning mb-3">🎤 Interview Questions</h5>
+                        <div class="row">
+                            {% for question in training.interview_questions %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ question.question_text }}</h6>
+                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#interviewModal{{ training.internship.id }}_{{ forloop.counter }}">Practice Answer</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Interview Question Modal -->
+                            <div class="modal fade" id="interviewModal{{ training.internship.id }}_{{ forloop.counter }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Interview Question</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h6 class="text-warning mb-3">{{ question.question_text }}</h6>
+                                            {% if question.suggested_answer %}
+                                            <div class="alert alert-light">
+                                                <strong>💡 Suggested Answer Points:</strong>
+                                                <p class="mb-0 mt-2">{{ question.suggested_answer }}</p>
+                                            </div>
+                                            {% endif %}
+                                            <div class="mb-3">
+                                                <label for="answerInput{{ training.internship.id }}_{{ forloop.counter }}" class="form-label">Your Practice Answer:</label>
+                                                <textarea class="form-control" id="answerInput{{ training.internship.id }}_{{ forloop.counter }}" rows="6" placeholder="Practice your answer here..."></textarea>
+                                            </div>
+                                            <div class="alert alert-info">
+                                                <strong>💡 Tip:</strong> Tailor your answer specifically for the {{ training.internship.title }} position at {{ training.internship.company }}.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-warning" onclick="savePracticeAnswer('{{ training.internship.id }}_{{ forloop.counter }}', '{{ question.id }}')">Save Practice</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+</div>
+
+<!-- Success/Error Messages Container -->
+<div id="messageContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+<script>
+// Function to check quiz answers
+function checkAnswer(questionName, correctAnswer) {
+    const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+    const resultDiv = document.getElementById(`result_${questionName}`);
+    
+    if (!resultDiv) {
+        console.error(`Result div with id 'result_${questionName}' not found`);
+        return;
+    }
+    
+    if (!selectedOption) {
+        resultDiv.innerHTML = '<div class="alert alert-warning alert-sm mt-2">⚠️ Please select an answer first!</div>';
+        return;
+    }
+    
+    const selectedValue = selectedOption.value;
+    if (selectedValue === correctAnswer) {
+        resultDiv.innerHTML = '<div class="alert alert-success alert-sm mt-2">✅ Correct! Well done.</div>';
+    } else {
+        resultDiv.innerHTML = `<div class="alert alert-danger alert-sm mt-2">❌ Incorrect. The correct answer is ${correctAnswer}.</div>`;
+    }
+    
+    // Auto-hide the result after 5 seconds
+    setTimeout(() => {
+        if (resultDiv) {
+            resultDiv.innerHTML = '';
+        }
+    }, 5000);
+}
+
+// Function to save practice answers
+function savePracticeAnswer(inputId, questionId) {
+    const answerInput = document.getElementById(`answerInput${inputId}`);
+    
+    if (!answerInput) {
+        console.error(`Answer input with id 'answerInput${inputId}' not found`);
+        showMessage('Error: Could not find answer input field', 'danger');
+        return;
+    }
+    
+    const answer = answerInput.value.trim();
+    
+    if (!answer) {
+        showMessage('Please write your practice answer first!', 'warning');
+        return;
+    }
+    
+    // Store in sessionStorage (you can replace this with an AJAX call to your backend)
+    try {
+        const storageKey = `practice_answer_${questionId}`;
+        sessionStorage.setItem(storageKey, answer);
+        
+        showMessage('Practice answer saved successfully! ✅', 'success');
+        
+        // Close the modal
+        const modal = document.getElementById(`interviewModal${inputId.split('_')[0]}_${inputId.split('_')[1]}`);
+        if (modal) {
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+        }
+        
+        // Optional: You can send this data to your Django backend via AJAX
+        // savePracticeAnswerToBackend(questionId, answer);
+        
+    } catch (error) {
+        console.error('Error saving practice answer:', error);
+        showMessage('Error saving answer. Please try again.', 'danger');
+    }
+}
+
+// Function to start a project
+function startProject(projectId, projectTitle) {
+    // Store project start information
+    try {
+        const startData = {
+            projectId: projectId,
+            projectTitle: projectTitle,
+            startedAt: new Date().toISOString()
+        };
+        
+        sessionStorage.setItem(`project_${projectId}`, JSON.stringify(startData));
+        
+        showMessage(`Started project: "${projectTitle}" 🚀`, 'success');
+        
+        // Optional: You can redirect to a project workspace or send to backend
+        // window.location.href = `/projects/${projectId}/workspace/`;
+        
+    } catch (error) {
+        console.error('Error starting project:', error);
+        showMessage('Error starting project. Please try again.', 'danger');
+    }
+}
+
+// Function to show toast messages
+function showMessage(message, type = 'info') {
+    const messageContainer = document.getElementById('messageContainer');
+    if (!messageContainer) {
+        console.error('Message container not found');
+        return;
+    }
+    
+    const alertTypes = {
+        'success': 'alert-success',
+        'danger': 'alert-danger',
+        'warning': 'alert-warning',
+        'info': 'alert-info'
+    };
+    
+    const alertClass = alertTypes[type] || 'alert-info';
+    
+    const alertElement = document.createElement('div');
+    alertElement.className = `alert ${alertClass} alert-dismissible fade show`;
+    alertElement.setAttribute('role', 'alert');
+    alertElement.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    messageContainer.appendChild(alertElement);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertElement && alertElement.parentNode) {
+            alertElement.remove();
+        }
+    }, 5000);
+}
+
+// Optional: Function to load saved practice answers when modals open
+document.addEventListener('DOMContentLoaded', function() {
+    // Load saved practice answers
+    const modals = document.querySelectorAll('[id^="interviewModal"]');
+    modals.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            const textarea = modal.querySelector('textarea[id^="answerInput"]');
+            if (textarea) {
+                const modalId = modal.id;
+                const questionMatch = modalId.match(/interviewModal(\d+)_(\d+)/);
+                if (questionMatch) {
+                    // Try to load saved answer (you'd need to pass question ID from Django)
+                    // const savedAnswer = sessionStorage.getItem(`practice_answer_${questionId}`);
+                    // if (savedAnswer) {
+                    //     textarea.value = savedAnswer;
+                    // }
+                }
+            }
+        });
+    });
+    
+    // Initialize tooltips if using Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    if (typeof bootstrap !== 'undefined') {
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+
+// Optional: Function to send practice answers to Django backend
+function savePracticeAnswerToBackend(questionId, answer) {
+    fetch('/save-practice-answer/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]') ? 
+                          document.querySelector('[name=csrfmiddlewaretoken]').value : ''
+        },
+        body: JSON.stringify({
+            question_id: questionId,
+            answer: answer
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Practice answer saved to backend');
+        } else {
+            console.error('Failed to save to backend:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving to backend:', error);
+    });
+}
+</script>
+
+{% endblock %}

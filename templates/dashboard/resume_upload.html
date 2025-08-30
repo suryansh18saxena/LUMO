@@ -1,0 +1,165 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Upload Resume - LUMO{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 text-lumo">Upload Resume</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Resume Upload</h5>
+            </div>
+            <div class="card-body">
+                <form id="resumeUploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="resume" class="form-label">Select Resume (PDF only)</label>
+                        <input type="file" class="form-control" id="resume" name="resume" accept=".pdf" required>
+                        <div class="form-text">Please upload your resume in PDF format. Maximum file size: 5MB.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-lumo" id="uploadBtn">
+                            <i class="bi bi-cloud-upload me-2"></i>Upload & Parse Resume
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="uploadProgress" class="mt-3" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                    </div>
+                    <small class="text-muted">Processing your resume...</small>
+                </div>
+                
+                <div id="uploadResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Current Status</h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>Resume uploaded
+                    </div>
+                    <p class="small">
+                        <strong>Current file:</strong><br>
+                        <a href="{{ student.resume.url }}" target="_blank" class="text-lumo">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>{{ student.resume.name|cut:"resumes/" }}
+                        </a>
+                    </p>
+                    
+                    {% if student.resume_json_data %}
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-cpu-fill me-2"></i>Resume processed successfully
+                        </div>
+                        <a href="{% url 'resume_preview' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye me-1"></i>Preview Parsed Data
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>No resume uploaded
+                    </div>
+                    <p class="small text-muted">Upload your resume to get started with personalized recommendations.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li>Use a well-formatted PDF resume</li>
+                    <li>Include clear sections for skills, experience, and education</li>
+                    <li>List your technical skills prominently</li>
+                    <li>Our AI will extract and match your skills with internships</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('resumeUploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    const fileInput = document.getElementById('resume');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showAlert('Please select a file to upload.', 'warning');
+        return;
+    }
+    
+    if (file.type !== 'application/pdf') {
+        showAlert('Please select a PDF file.', 'danger');
+        return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        showAlert('File size must be less than 5MB.', 'danger');
+        return;
+    }
+    
+    formData.append('resume', file);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    // Show progress
+    document.getElementById('uploadProgress').style.display = 'block';
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('uploadResult').innerHTML = '';
+    
+    fetch('{% url "upload_resume_api" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadBtn').disabled = false;
+        
+        if (data.status === 'success') {
+            showAlert(data.message, 'success');
+            // Reload page to show updated status
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showAlert(data.error || 'Upload failed', 'danger');
+        }
+    })
+    .catch(error => {
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadBtn').disabled = false;
+        showAlert('An error occurred during upload.', 'danger');
+        console.error('Error:', error);
+    });
+});
+
+function showAlert(message, type) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.getElementById('uploadResult').innerHTML = alertHtml;
+}
+</script>
+{% endblock %}
+{% endblock %}

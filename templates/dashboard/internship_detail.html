@@ -1,0 +1,154 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ internship.title }} - LUMO{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 text-lumo">{{ internship.title }}</h1>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h3 class="text-lumo mb-1">{{ internship.title }}</h3>
+                        <h5 class="text-muted mb-2">
+                            <i class="bi bi-building me-1"></i>{{ internship.company }}
+                        </h5>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-geo-alt me-1"></i>{{ internship.location }}
+                        </p>
+                    </div>
+                    {% if matching_skills %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-star-fill me-1"></i>Recommended
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <small class="text-muted">Duration</small>
+                        <p class="mb-0"><i class="bi bi-clock me-1"></i>{{ internship.duration }}</p>
+                    </div>
+                    {% if internship.stipend %}
+                    <div class="col-md-4">
+                        <small class="text-muted">Stipend</small>
+                        <p class="mb-0 text-success fw-bold">
+                            <i class="bi bi-currency-dollar me-1"></i>${{ internship.stipend|floatformat:0 }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4">
+                        <small class="text-muted">Posted</small>
+                        <p class="mb-0"><i class="bi bi-calendar me-1"></i>{{ internship.posted_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    <p>{{ internship.description|linebreaks }}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Required Skills</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for skill in internship.required_skills.all %}
+                            {% if skill in matching_skills %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>{{ skill.name }}
+                                </span>
+                            {% else %}
+                                <span class="badge badge-skill">{{ skill.name }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if matching_skills %}
+                        <small class="text-success mt-2 d-block">
+                            <i class="bi bi-info-circle me-1"></i>
+                            You have {{ matching_skills.count }} of {{ internship.required_skills.count }} required skills
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-send me-2"></i>Application</h5>
+            </div>
+            <div class="card-body">
+                {% if has_applied %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        You have already applied for this internship
+                    </div>
+                    <a href="{% url 'my_applications' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-text me-1"></i>View My Applications
+                    </a>
+                {% else %}
+                    {% if not student.resume %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Please upload your resume before applying
+                        </div>
+                        <a href="{% url 'resume_upload' %}" class="btn btn-lumo">
+                            <i class="bi bi-cloud-upload me-1"></i>Upload Resume
+                        </a>
+                    {% else %}
+                        <p class="mb-3">Ready to apply for this internship?</p>
+                        <form method="post" action="{% url 'apply_internship' internship.id %}">
+                            {% csrf_token %}
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-lumo">
+                                    <i class="bi bi-send me-2"></i>Apply Now
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if matching_skills %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Your Matching Skills</h5>
+            </div>
+            <div class="card-body">
+                {% for skill in matching_skills %}
+                    <span class="badge bg-success me-1 mb-1">{{ skill.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-book me-2"></i>Preparation</h5>
+            </div>
+            <div class="card-body">
+                <p class="small mb-3">Get ready for this internship with our training resources:</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'training' %}?internship={{ internship.id }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-question-circle me-1"></i>Practice Quiz
+                    </a>
+                    <a href="{% url 'training' %}?internship={{ internship.id }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-code-slash me-1"></i>Coding Challenges
+                    </a>
+                    <a href="{% url 'training' %}?internship={{ internship.id }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-chat-dots me-1"></i>Interview Questions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

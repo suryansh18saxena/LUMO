@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}LUMO - AI-Powered Internship Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-lumo text-white">
+    <div class="container py-5">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="bi bi-lightbulb-fill me-3"></i>LUMO
+                </h1>
+                <p class="lead mb-4">
+                    AI-powered internship recommendation and preparation platform. 
+                    Find the perfect internship match and get ready to succeed.
+                </p>
+                <div class="d-flex gap-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Get Started
+                        </a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="bi bi-diagram-3 display-1 opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="text-lumo mb-3">Why Choose LUMO?</h2>
+            <p class="lead text-muted">Everything you need to land your dream internship</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-robot display-4 text-lumo mb-3"></i>
+                    <h5 class="card-title">AI-Powered Matching</h5>
+                    <p class="card-text">Our AI analyzes your resume and matches you with the most relevant internship opportunities.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-file-earmark-pdf display-4 text-lumo mb-3"></i>
+                    <h5 class="card-title">Resume Analysis</h5>
+                    <p class="card-text">Upload your resume and get instant parsing with skill extraction and optimization suggestions.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-book display-4 text-lumo mb-3"></i>
+                    <h5 class="card-title">Interview Preparation</h5>
+                    <p class="card-text">Practice with coding challenges, quiz questions, and mock interview sessions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="text-lumo mb-3">How It Works</h2>
+                <p class="lead text-muted">Get started in just a few simple steps</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4 text-center">
+                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fw-bold">1</span>
+                </div>
+                <h5>Sign Up</h5>
+                <p class="text-muted">Create your account and set up your profile</p>
+            </div>
+            
+            <div class="col-md-3 mb-4 text-center">
+                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fw-bold">2</span>
+                </div>
+                <h5>Upload Resume</h5>
+                <p class="text-muted">Upload your resume for AI-powered analysis</p>
+            </div>
+            
+            <div class="col-md-3 mb-4 text-center">
+                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fw-bold">3</span>
+                </div>
+                <h5>Get Matched</h5>
+                <p class="text-muted">Receive personalized internship recommendations</p>
+            </div>
+            
+            <div class="col-md-3 mb-4 text-center">
+                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fw-bold">4</span>
+                </div>
+                <h5>Prepare & Apply</h5>
+                <p class="text-muted">Use our training tools and apply with confidence</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+{% if not user.is_authenticated %}
+<div class="bg-lumo text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-3">Ready to Find Your Perfect Internship?</h2>
+        <p class="lead mb-4">Join thousands of students who have found success with LUMO</p>
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+            <i class="bi bi-person-plus me-2"></i>Start Your Journey
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
