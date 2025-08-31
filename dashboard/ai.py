@@ -6,11 +6,8 @@ def get_ai_generated_questions(company_name, skills):
     """
     Google Gemini API ka istemal karke company aur skills ke basis par questions generate karta hai.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable not set.")
 
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBiQRDMoauFmUaHNTwjYrjM0VVKscmdZqk"
     
     skill_names = ", ".join([skill.name for skill in skills])
 

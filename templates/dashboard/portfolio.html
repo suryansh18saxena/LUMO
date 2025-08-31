@@ -1,0 +1,111 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}My Portfolio - LUMO{% endblock %}
+
+{% block dashboard_content %}
+<style>
+    .portfolio-header {
+        background: linear-gradient(135deg, var(--lumo-primary) 0%, var(--lumo-secondary) 100%);
+        color: white;
+        padding: 4rem 2rem;
+        border-radius: 12px;
+        text-align: center;
+    }
+    .portfolio-section {
+        margin-top: 2.5rem;
+    }
+    .section-title {
+        font-weight: 700;
+        color: var(--lumo-dark);
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--lumo-secondary);
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+</style>
+
+<div class="container-fluid">
+    {% if resume_data %}
+    <div class="portfolio-header mb-5">
+        <h1 class="display-4">{{ resume_data.contact_info.name|default:student.user.get_full_name }}</h1>
+        <p class="lead">
+            {% if resume_data.contact_info.email %}<i class="bi bi-envelope-fill me-2"></i>{{ resume_data.contact_info.email }}{% endif %}
+            {% if resume_data.contact_info.phone %}<span class="mx-3">|</span><i class="bi bi-telephone-fill me-2"></i>{{ resume_data.contact_info.phone }}{% endif %}
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="portfolio-section">
+                <h3 class="section-title">Summary</h3>
+                <p>{{ resume_data.summary|default:"No summary provided." }}</p>
+            </div>
+
+            <div class="portfolio-section">
+                <h3 class="section-title">Experience</h3>
+                {% for exp in resume_data.experience %}
+                    <div class="mb-4">
+                        <h5 class="mb-1">{{ exp.title }}</h5>
+                        <h6 class="text-muted mb-2">{{ exp.company }}</h6>
+                        <p>{{ exp.description }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No work experience listed.</p>
+                {% endfor %}
+            </div>
+            
+            <div class="portfolio-section">
+                <h3 class="section-title">Projects</h3>
+                {% for project in resume_data.projects %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ project.title }}</h5>
+                            <p class="card-text">{{ project.description }}</p>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No projects listed.</p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+             <div class="portfolio-section">
+                <h3 class="section-title">Skills</h3>
+                <div>
+                    {% for skill in resume_data.skills %}
+                        <span class="badge badge-skill me-2 mb-2 p-2">{{ skill }}</span>
+                    {% empty %}
+                        <p class="text-muted">No skills listed.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="portfolio-section">
+                <h3 class="section-title">Education</h3>
+                {% for edu in resume_data.education %}
+                    <div class="mb-3">
+                        <h6 class="mb-1">{{ edu.degree }}</h6>
+                        <p class="text-muted mb-1">{{ edu.institution }}</p>
+                        <small class="text-muted">{{ edu.dates }}</small>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No education details provided.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-file-earmark-person display-1 text-muted"></i>
+            <h3 class="mt-3 text-muted">No Resume Data Found</h3>
+            <p class="text-muted">Please upload your resume to generate a portfolio.</p>
+            <a href="{% url 'resume_upload' %}" class="btn btn-lumo mt-3">
+                <i class="bi bi-cloud-upload me-1"></i> Upload Your Resume
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -113,7 +113,8 @@
 
   <script>
     let currentRole = "Tech"; // default role
-    const apiKey = "AIzaSyCFR2bIGyl6BZzxwCrFZ1zH6GSfofUdbZc"; // 🔑 Put your Gemini API key here
+    const apiKey = "AIzaSyBiQRDMoauFmUaHNTwjYrjM0VVKscmdZqk"; // 🔑 Replace with your Gemini API key
+    let lastQuestion = ""; // store the last asked question
 
     function setRole(role) {
       currentRole = role;
@@ -129,25 +130,53 @@
     async function askGemini() {
       const input = document.getElementById("userInput");
       const chatBox = document.getElementById("chatBox");
-      const text = input.value.trim();
+      const userAnswer = input.value.trim();
 
-      if (!text) return;
+      if (!userAnswer) return;
 
       // Show user message
-      chatBox.innerHTML += `<div class="message user">${text}</div>`;
+      chatBox.innerHTML += `<div class="message user">${userAnswer}</div>`;
       input.value = "";
       chatBox.scrollTop = chatBox.scrollHeight;
 
       // Show thinking...
       const thinkingMsg = document.createElement("div");
       thinkingMsg.className = "message bot";
-      thinkingMsg.innerText = "Thinking... ⏳";
+      thinkingMsg.innerText = "Analyzing... ⏳";
       chatBox.appendChild(thinkingMsg);
       chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        // First call: get English question/response
-        const res = await fetch(
+        // STEP 1: Analyse user answer against last question
+        let feedback = "";
+        if (lastQuestion) {
+          const resFeedback = await fetch(
+            "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=" + apiKey,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{
+                  role: "user",
+                  parts: [{
+                    text: `You are a strict ${currentRole} Interviewer. 
+                    The question was: "${lastQuestion}".
+                    The candidate answered: "${userAnswer}".
+                    Please provide a short evaluation with strengths and areas to improve.`
+                  }]
+                }]
+              })
+            }
+          );
+
+          const dataFb = await resFeedback.json();
+          if (dataFb.candidates && dataFb.candidates.length > 0) {
+            feedback = dataFb.candidates[0].content.parts[0].text;
+          }
+        }
+
+        // STEP 2: Get the NEXT interview question
+        const resQ = await fetch(
           "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=" + apiKey,
           {
             method: "POST",
@@ -158,14 +187,15 @@
           }
         );
 
-        const data = await res.json();
+        const dataQ = await resQ.json();
         let englishText = "No response";
-        if (data.candidates && data.candidates.length > 0) {
-          englishText = data.candidates[0].content.parts[0].text;
+        if (dataQ.candidates && dataQ.candidates.length > 0) {
+          englishText = dataQ.candidates[0].content.parts[0].text;
+          lastQuestion = englishText; // save for next analysis
         }
 
-        // Second call: translate to Hindi
-        const res2 = await fetch(
+        // STEP 3: Translate next question to Hindi
+        const resHindi = await fetch(
           "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=" + apiKey,
           {
             method: "POST",
@@ -176,16 +206,19 @@
           }
         );
 
-        const data2 = await res2.json();
+        const dataHindi = await resHindi.json();
         let hindiText = "";
-        if (data2.candidates && data2.candidates.length > 0) {
-          hindiText = data2.candidates[0].content.parts[0].text;
+        if (dataHindi.candidates && dataHindi.candidates.length > 0) {
+          hindiText = dataHindi.candidates[0].content.parts[0].text;
         }
 
         thinkingMsg.remove();
 
-        // Show final message
-        chatBox.innerHTML += `<div class="message bot"><b>${currentRole} Interviewer:</b> ${englishText} <br><i>(${hindiText})</i></div>`;
+        // STEP 4: Show evaluation + next question
+        if (feedback) {
+          chatBox.innerHTML += `<div class="message bot"><b>${currentRole} Interviewer (Feedback):</b> ${feedback}</div>`;
+        }
+        chatBox.innerHTML += `<div class="message bot"><b>${currentRole} Interviewer (Next Q):</b> ${englishText} <br><i>(${hindiText})</i></div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
       } catch (error) {

@@ -34,6 +34,9 @@ def dashboard(request):
         'all_skills': all_skills,
         'student': student_profile
     }
+
+
+
     return render(request, 'dashboard/index.html', context)
 
 def get_recommended_internships(student):
@@ -582,3 +585,18 @@ def mock_interview(request):
     student_profile, created = Student.objects.get_or_create(user=request.user)
     # Logic for conducting a mock interview goes here
     return render(request, 'dashboard/mock_interview.html', {'student': student_profile})
+
+
+@login_required
+def portfolio_view(request):
+    """
+    Generates and displays a portfolio page based on the student's resume data.
+    """
+    student_profile, created = Student.objects.get_or_create(user=request.user)
+    
+    context = {
+        'student': student_profile,
+        'resume_data': student_profile.resume_json_data
+    }
+    return render(request, 'dashboard/portfolio.html', context)
+
