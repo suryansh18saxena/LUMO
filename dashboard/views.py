@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from accounts.models import Student, Skill
 from .models import Internship, Application, QuizQuestion, InterviewQuestion, RecommendedProject
+from .ai import get_ai_generated_questions
 
 # --- Page Rendering Views ---
 
@@ -452,33 +453,66 @@ def recommended_internships(request):
         'student': student_profile
     })
 
+# @login_required
+# def training(request):
+#     """
+#     Training roadmap page with internship-specific quizzes, interview questions, and projects
+#     """
+#     student_profile, created = Student.objects.get_or_create(user=request.user)
+    
+#     # Get recommended internships for the student
+#     recommended_internships = get_recommended_internships(student_profile)
+    
+#     # Get training data for recommended internships
+#     training_data = []
+#     for rec in recommended_internships[:3]:  # Limit to top 3 recommendations
+#         internship = rec['internship']
+#         training_data.append({
+#             'internship': internship,
+#             'match_percentage': rec['match_percentage'],
+#             'quiz_questions': list(internship.quiz_questions.all()),
+#             'interview_questions': list(internship.interview_questions.all()),
+#             'recommended_projects': list(internship.recommended_projects.all())
+#         })
+    
+#     return render(request, 'dashboard/training.html', {
+#         'student': student_profile,
+#         'training_data': training_data,
+#         'has_recommendations': len(training_data) > 0
+#     })
+
+# ======================================Preparation======================================
+
 @login_required
-def training(request):
-    """
-    Training roadmap page with internship-specific quizzes, interview questions, and projects
-    """
-    student_profile, created = Student.objects.get_or_create(user=request.user)
-    
-    # Get recommended internships for the student
-    recommended_internships = get_recommended_internships(student_profile)
-    
-    # Get training data for recommended internships
-    training_data = []
-    for rec in recommended_internships[:3]:  # Limit to top 3 recommendations
-        internship = rec['internship']
-        training_data.append({
-            'internship': internship,
-            'match_percentage': rec['match_percentage'],
-            'quiz_questions': list(internship.quiz_questions.all()),
-            'interview_questions': list(internship.interview_questions.all()),
-            'recommended_projects': list(internship.recommended_projects.all())
-        })
-    
-    return render(request, 'dashboard/training.html', {
-        'student': student_profile,
-        'training_data': training_data,
-        'has_recommendations': len(training_data) > 0
-    })
+def practice_quiz(request, internship_id):
+    internship = get_object_or_404(Internship, id=internship_id)
+    quiz_questions = internship.quiz_questions.all()
+    context = {
+        'internship': internship,
+        'quiz_questions': quiz_questions
+    }
+    return render(request, 'dashboard/practice_quiz.html', context)
+
+@login_required
+def coding_challenges(request, internship_id):
+    internship = get_object_or_404(Internship, id=internship_id)
+    coding_questions = internship.coding_questions.all()
+    context = {
+        'internship': internship,
+        'coding_questions': coding_questions
+    }
+    return render(request, 'dashboard/coding_challenges.html', context)
+
+@login_required
+def interview_questions(request, internship_id):
+    internship = get_object_or_404(Internship, id=internship_id)
+    interview_questions = internship.interview_questions.all()
+    context = {
+        'internship': internship,
+        'interview_questions': interview_questions
+    }
+    return render(request, 'dashboard/interview_questions.html', context)
+
 
 @login_required
 def internship_detail(request, internship_id):
@@ -527,6 +561,8 @@ def apply_internship(request, internship_id):
     internship = get_object_or_404(Internship, id=internship_id)
     student_profile, created = Student.objects.get_or_create(user=request.user)
     
+
+
     # Check if already applied
     if Application.objects.filter(student=student_profile, internship=internship).exists():
         messages.warning(request, f'You have already applied for {internship.title} at {internship.company}!')
@@ -537,3 +573,12 @@ def apply_internship(request, internship_id):
     
     return redirect('internship_detail', internship_id=internship_id)
 
+
+@login_required
+def mock_interview(request):
+    """
+    Conduct a mock interview for the student
+    """
+    student_profile, created = Student.objects.get_or_create(user=request.user)
+    # Logic for conducting a mock interview goes here
+    return render(request, 'dashboard/mock_interview.html', {'student': student_profile})

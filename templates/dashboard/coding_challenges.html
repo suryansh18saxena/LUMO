@@ -1,0 +1,26 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Coding Challenges for {{ internship.title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 text-lumo">💻 Coding Challenges</h1>
+        <h5 class="text-muted">{{ internship.title }}</h5>
+    </div>
+    <a href="{% url 'internship_detail' internship.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Internship
+    </a>
+</div>
+
+{% for question in coding_questions %}
+<div class="card mb-3">
+    <div class="card-header"><strong>{{ question.title }}</strong></div>
+    <div class="card-body">
+        <p>{{ question.problem_statement|linebreaks }}</p>
+    </div>
+</div>
+{% empty %}
+<p>No coding challenges available for this internship yet.</p>
+{% endfor %}
+{% endblock %}

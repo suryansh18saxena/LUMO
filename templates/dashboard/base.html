@@ -27,9 +27,9 @@
                        href="{% url 'recommended_internships' %}">
                         <i class="bi bi-star me-2"></i>Recommended
                     </a>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'training' %}active{% endif %}" 
-                       href="{% url 'training' %}">
-                        <i class="bi bi-book me-2"></i>Training
+                    <a class="nav-link {% if request.resolver_match.url_name == 'mock_interview' %}active{% endif %}" 
+                       href="{% url 'mock_interview' %}">
+                        <i class="bi bi-keyboard me-2"></i>Mock Interview
                     </a>
                 </nav>
             </div>

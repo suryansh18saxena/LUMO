@@ -1,0 +1,205 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Dashboard - LUMO{% endblock %}
+
+{% block dashboard_content %}
+  <title>Lumo Mock Interview</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6fa;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .role-box {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+    .role-box button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #e9ecef;
+      transition: 0.2s;
+    }
+    .role-box button.active {
+      background: #007bff;
+      color: white;
+    }
+    .chat-box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+    .message {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 6px;
+      max-width: 80%;
+    }
+    .user {
+      background: #007bff;
+      color: white;
+      margin-left: auto;
+    }
+    .bot {
+      background: #e3f2fd;
+      color: #000;
+      margin-right: auto;
+    }
+    .input-area {
+      display: flex;
+      margin-top: 10px;
+      gap: 10px;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .input-area button {
+      padding: 10px 20px;
+      background: #28a745;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+    .input-area button:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Lumo AI Mock Interview</h2>
+
+    <!-- Role selection -->
+    <div class="role-box">
+      <button id="role-tech" onclick="setRole('Tech')">Tech</button>
+      <button id="role-hr" onclick="setRole('HR')">HR</button>
+      <button id="role-manager" onclick="setRole('Manager')">Manager</button>
+    </div>
+
+    <!-- Chat window -->
+    <div id="chatBox" class="chat-box"></div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your answer..."/>
+      <button onclick="askGemini()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    let currentRole = "Tech"; // default role
+    const apiKey = "AIzaSyCFR2bIGyl6BZzxwCrFZ1zH6GSfofUdbZc"; // 🔑 Put your Gemini API key here
+
+    function setRole(role) {
+      currentRole = role;
+      document.querySelectorAll(".role-box button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById("role-" + role.toLowerCase()).classList.add("active");
+
+      // Show role intro
+      const chatBox = document.getElementById("chatBox");
+      chatBox.innerHTML += `<div class="message bot"><b>${role} Interviewer:</b> Hello! I will be asking you ${role}-style questions. Let's begin!</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function askGemini() {
+      const input = document.getElementById("userInput");
+      const chatBox = document.getElementById("chatBox");
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      // Show user message
+      chatBox.innerHTML += `<div class="message user">${text}</div>`;
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Show thinking...
+      const thinkingMsg = document.createElement("div");
+      thinkingMsg.className = "message bot";
+      thinkingMsg.innerText = "Thinking... ⏳";
+      chatBox.appendChild(thinkingMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        // First call: get English question/response
+        const res = await fetch(
+          "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=" + apiKey,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: `${currentRole} Interviewer, ask the next interview question in English.` }] }]
+            })
+          }
+        );
+
+        const data = await res.json();
+        let englishText = "No response";
+        if (data.candidates && data.candidates.length > 0) {
+          englishText = data.candidates[0].content.parts[0].text;
+        }
+
+        // Second call: translate to Hindi
+        const res2 = await fetch(
+          "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=" + apiKey,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: `Translate this into Hindi only (no explanation): "${englishText}"` }] }]
+            })
+          }
+        );
+
+        const data2 = await res2.json();
+        let hindiText = "";
+        if (data2.candidates && data2.candidates.length > 0) {
+          hindiText = data2.candidates[0].content.parts[0].text;
+        }
+
+        thinkingMsg.remove();
+
+        // Show final message
+        chatBox.innerHTML += `<div class="message bot"><b>${currentRole} Interviewer:</b> ${englishText} <br><i>(${hindiText})</i></div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+      } catch (error) {
+        thinkingMsg.remove();
+        chatBox.innerHTML += `<div class="message bot" style="color:red;">Error fetching response.</div>`;
+        console.error(error);
+      }
+    }
+
+    // Initialize Tech as default role
+    document.getElementById("role-tech").classList.add("active");
+    setRole("Tech");
+  </script>
+</body>
+</html>
+
+{% endblock %}

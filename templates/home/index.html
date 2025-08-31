@@ -1,140 +1,1603 @@
-{% extends 'base.html' %}
+{% load static %}
 
-{% block title %}LUMO - AI-Powered Internship Platform{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumo - Internships | Jobs | Trainings</title>
 
-{% block content %}
-<!-- Hero Section -->
-<div class="bg-lumo text-white">
-    <div class="container py-5">
-        <div class="row align-items-center min-vh-75">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">
-                    <i class="bi bi-lightbulb-fill me-3"></i>LUMO
-                </h1>
-                <p class="lead mb-4">
-                    AI-powered internship recommendation and preparation platform. 
-                    Find the perfect internship match and get ready to succeed.
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* General Styling & Variables */
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+      :root {
+        --primary-blue: #007bff;
+        --dark-text: #2c3e50;
+        --light-text: #555;
+        --bg-color: #ffffff;
+        --light-gray: #f4f7f6;
+        --border-color: #dcdcdc;
+        --yellow-tag: #ffd700;
+
+        /* Footer Colors */
+        --footer-bg: #111827;
+        --footer-text: #9ca3af;
+        --footer-heading: #e5e7eb;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--dark-text);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #e0f2fe; /* Sky-100 */
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #38bdf8; /* Sky-500 */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #0ea5e9; /* Sky-600 */
+      }
+
+      /* Header & Navigation */
+      header.main-header {
+        /* Glassmorphism Effect */
+        background: rgba(255, 255, 255, 0.15); /* Semi-transparent background */
+        backdrop-filter: blur(10px); /* The blur effect */
+        -webkit-backdrop-filter: blur(10px); /* For Safari browser support */
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* A subtle border */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+
+        /* Keep your other styles like padding, position, etc. */
+        padding: 5px 0;
+        min-height: 90px;
+        display: flex;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center; /* Isse logo aur text vertically center ho jayenge */
+        gap: 10px; /* Logo aur text ke beech thodi jagah dega */
+        text-decoration: none; /* Link ke neeche ki line hatane ke liye */
+        color: black; /* Text ka color set karne ke liye */
+      }
+
+      /* Ab logo ki image ko style karenge */
+      .logo img {
+        height: 50px; /* Apne design ke hisab se height set karein */
+      }
+
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav-left,
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .logo {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--primary-blue);
+        text-decoration: none;
+      }
+
+      .btn-login {
+        background-color: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .btn-login:hover {
+        background-color: #006fe6;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+      }
+
+      /* Styling for the new Join button */
+      .btn-join {
+        background-color: transparent; /* Make it transparent */
+        color: var(--primary-blue); /* Use the main blue color for text */
+        border: 2px solid var(--primary-blue); /* Add a blue border */
+        padding: 10px 25px; /* Adjust padding to match the login button */
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .btn-join:hover {
+        background-color: var(--primary-blue); /* On hover, fill with blue */
+        color: white; /* Make text white on hover */
+      }
+
+      /* --- HERO SECTION HEIGHT ADJUSTMENT --- */
+      #hero {
+        min-height: calc(100vh - 73px);
+        padding-top: 0;
+        padding-bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #hero .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .hero-gradient-text {
+        background: -webkit-linear-gradient(45deg, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* Floating Elements Styling */
+      .floating-element {
+        position: absolute;
+        background-color: rgba(59, 130, 246, 0.1);
+        border-radius: 50%;
+        z-index: 0;
+        filter: blur(10px);
+      }
+
+      /* General Section Header Styling */
+      .header-section {
+        text-align: center;
+        margin-bottom: 50px;
+      }
+
+      .header-section h1 {
+        font-family: "Montserrat", sans-serif;
+        font-size: 2.8em;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--dark-text);
+      }
+
+      .header-section p {
+        font-size: 1.1em;
+        color: var(--light-text);
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      /* How It Works Section */
+      .how-it-works-section {
+        background-color: var(--light-gray);
+        padding: 60px 0;
+      }
+
+      .timeline-container {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 50px 0;
+        overflow: hidden;
+      }
+
+      .timeline-svg-path {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 100%;
+        width: 80px;
+        z-index: 0;
+      }
+
+      .timeline-item {
+        position: relative;
+        width: calc(50% - 40px);
+        z-index: 1;
+        margin-bottom: 50px;
+      }
+
+      .timeline-item:nth-child(even) {
+        margin-left: calc(50% + 40px);
+      }
+
+      .timeline-item .step-info {
+        background-color: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .timeline-item h3 {
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.6em;
+        color: var(--primary-blue);
+        margin-bottom: 10px;
+      }
+
+      .timeline-item p {
+        font-size: 1em;
+        color: var(--light-text);
+        line-height: 1.6;
+      }
+
+      .timeline-dot {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 20px;
+        background-color: var(--primary-blue);
+        border: 4px solid var(--light-gray);
+        border-radius: 50%;
+        z-index: 2;
+        box-shadow: 0 0 0 4px var(--primary-blue);
+      }
+
+      .dot-1 {
+        top: 5%;
+      }
+      .dot-2 {
+        top: 30%;
+      }
+      .dot-3 {
+        top: 55%;
+      }
+      .dot-4 {
+        top: 80%;
+      }
+
+      /* Awesome Features Section */
+      .features {
+        background: linear-gradient(135deg, #fceaff, #e0f7fa);
+        padding: 80px 0;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      .cards-carousel-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 0;
+        perspective: 1000px;
+      }
+
+      .cards-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        height: 400px;
+      }
+
+      .feature-card {
+        position: absolute;
+        width: 300px;
+        height: 380px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        text-align: left;
+        transition: all 0.5s ease-in-out;
+        opacity: 0;
+        cursor: pointer;
+        pointer-events: none;
+      }
+
+      .feature-card .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .icon-box.blue-bg {
+        background-color: #007bff;
+      }
+      .icon-box.red-bg {
+        background-color: #e74c3c;
+      }
+      .icon-box.green-bg {
+        background-color: #27ae60;
+      }
+      .icon-box.purple-bg {
+        background-color: #8e44ad;
+      }
+      .icon-box.orange-bg {
+        background-color: #f39c12;
+      }
+      .icon-box.darkblue-bg {
+        background-color: #34495e;
+      }
+      .icon-box.teal-bg {
+        background-color: #1abc9c;
+      }
+      .icon-box.brown-bg {
+        background-color: #a0522d;
+      }
+
+      .feature-card h3 {
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.4em;
+        color: var(--dark-text);
+        margin-bottom: 15px;
+      }
+
+      .feature-card p {
+        font-size: 0.95em;
+        color: var(--light-text);
+        line-height: 1.6;
+        margin-bottom: 20px;
+        height: 75px;
+        overflow: hidden;
+      }
+
+      .feature-card .read-more {
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: color 0.3s;
+      }
+
+      .feature-card .read-more:hover {
+        color: #0056b3;
+      }
+
+      .feature-card .read-more i {
+        transition: transform 0.3s;
+      }
+
+      .feature-card .read-more:hover i {
+        transform: translateX(5px);
+      }
+
+      .feature-card.card-active {
+        transform: translateX(0) scale(1.1);
+        opacity: 1;
+        z-index: 10;
+        pointer-events: auto;
+      }
+
+      .feature-card.card-prev {
+        transform: translateX(-150%) scale(0.8);
+        opacity: 0.6;
+        z-index: 5;
+        pointer-events: auto;
+      }
+
+      .feature-card.card-next {
+        transform: translateX(150%) scale(0.8);
+        opacity: 0.6;
+        z-index: 5;
+        pointer-events: auto;
+      }
+
+      .carousel-controls {
+        position: absolute;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 20;
+        padding: 0 10px;
+      }
+
+      .carousel-control-btn {
+        background-color: rgba(0, 0, 0, 0.4);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .carousel-control-btn:hover {
+        background-color: rgba(0, 0, 0, 0.6);
+      }
+
+      /* --- Interactive Map Section Styles (FROM MAP.HTML) --- */
+      .map-section {
+        padding: 80px 0;
+        background: #f8f9fc;
+      }
+
+      .map-container-wrapper {
+        display: flex;
+        height: 700px;
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      #map {
+        flex: 1;
+        height: 100%;
+      }
+
+      .stats {
+        width: 40%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 20px;
+        background-color: #fff; /* Kept from original home.html */
+      }
+
+      .stat-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        font-weight: bold;
+        color: #001845;
+        transition: transform 0.2s;
+        /* Padding from home.html was removed to match map.html */
+      }
+
+      .stat-card:hover {
+        transform: translateY(-4px);
+      }
+
+      .stat-card h2 {
+        font-size: 32px;
+        margin: 0;
+      }
+
+      .stat-card p {
+        font-size: 16px;
+        margin: 5px 0 0;
+        font-weight: normal;
+      }
+
+      .gradient-main {
+        background: linear-gradient(135deg, #dbeafe, #fee2e2);
+      }
+      .gradient-green {
+        background: linear-gradient(135deg, #d1fae5, #e0f2fe);
+      }
+      .gradient-blue {
+        background: linear-gradient(135deg, #e0e7ff, #f0f9ff);
+      }
+      .gradient-grey {
+        background: linear-gradient(135deg, #e5e7eb, #f9fafb);
+      }
+      .gradient-yellow {
+        background: linear-gradient(135deg, #fef9c3, #fef3c7);
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.3);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .leaflet-tooltip {
+        background: rgba(15, 23, 42, 0.95) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        max-width: 280px !important;
+        z-index: 1000 !important;
+      }
+
+      .tooltip-title {
+        font-weight: bold;
+        font-size: 15px;
+        margin-bottom: 8px;
+        color: #fb923c;
+      }
+
+      .state-hover-effect {
+        transform: scale(1.02) !important;
+        transform-origin: center !important;
+        filter: drop-shadow(0 8px 16px rgba(251, 146, 60, 0.4)) !important;
+      }
+
+      .leaflet-interactive {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        transform-origin: center !important;
+      }
+
+      .leaflet-interactive:hover {
+        transform: scale(1.02) !important;
+        filter: drop-shadow(0 8px 16px rgba(251, 146, 60, 0.3)) !important;
+      }
+
+      /* Responsiveness */
+      @media (max-width: 768px) {
+        header.main-header {
+          min-height: auto; /* Allow header to shrink */
+          padding: 15px 0;
+        }
+
+        /* Stack the logo and buttons vertically */
+        nav.container {
+          flex-direction: column; /* Change flex direction from row to column */
+          gap: 20px; /* Add some space between the logo and the buttons */
+        }
+
+        /* --- IMPORTANT FIX --- */
+        /* Remove the negative margins that cause issues on mobile */
+        .nav-left,
+        .nav-right {
+          margin-left: 0;
+          margin-right: 0;
+        }
+
+        /* Make the logo slightly smaller */
+        .logo img {
+          height: 40px;
+        }
+
+        /* Make the buttons a little smaller to fit better */
+        .btn-login,
+        .btn-join {
+          padding: 10px 20px;
+          font-size: 14px;
+        }
+
+        .timeline-svg-path {
+          display: none;
+        }
+        .timeline-container::before {
+          content: "";
+          position: absolute;
+          left: 20px;
+          top: 0;
+          width: 3px;
+          height: 100%;
+          background-color: var(--border-color);
+        }
+        .timeline-item,
+        .timeline-item:nth-child(even) {
+          width: calc(100% - 50px);
+          margin-left: 50px;
+        }
+        .timeline-dot {
+          left: 20px;
+        }
+
+        /* Map responsiveness */
+        .map-container-wrapper {
+          flex-direction: column;
+          height: auto;
+        }
+        #map {
+          height: 400px; /* Give map a fixed height on mobile */
+        }
+        .stats {
+          width: 100%;
+          padding: 20px;
+        }
+      }
+
+      .site-footer {
+        background: linear-gradient(135deg, var(--footer-bg) 0%, #1f2937 100%);
+        color: var(--footer-text);
+        padding: 4rem 0 2rem 0;
+        font-size: 0.95rem;
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 2.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .footer-column .logo {
+        font-size: 1.75rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .footer-column .tagline {
+        line-height: 1.5;
+        max-width: 250px;
+        opacity: 0.9;
+      }
+
+      .footer-column h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--footer-heading);
+        margin-bottom: 1.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .footer-column ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .footer-column ul li {
+        margin-bottom: 0.75rem;
+      }
+
+      .footer-column ul a {
+        color: var(--footer-text);
+        text-decoration: none;
+        transition: var(--transition);
+      }
+
+      .footer-column ul a:hover {
+        color: var(--primary-color);
+        text-decoration: underline;
+        transform: translateX(5px);
+      }
+
+      .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .footer-bottom p {
+        margin: 0;
+      }
+
+      .footer-legal-links a {
+        color: var(--footer-text);
+        text-decoration: none;
+        margin-left: 1.5rem;
+        transition: var(--transition);
+      }
+
+      .footer-legal-links a:hover {
+        color: var(--primary-color);
+      }
+
+      /* Mobile Responsive */
+      @media (max-width: 768px) {
+        .footer-grid {
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .footer-bottom {
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .footer-legal-links {
+          margin-top: 1rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="main-header">
+      <nav class="container">
+        <div class="nav-left">
+          <a href="/" class="logo"><img src="{% static 'logo1.png' %}" alt="LUMO Logo" /></a>
+        </div>
+        <div class="nav-right">
+          <a href="{% url 'login' %}" class="btn-login" style="text-decoration: none">Login</a>
+          <a href="{% url 'register' %}" class="btn-join" style="text-decoration: none">Join</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="hero" class="relative text-center overflow-hidden">
+        <div class="floating-element w-48 h-48 top-20 left-10"></div>
+        <div class="floating-element w-32 h-32 top-1/2 right-20"></div>
+        <div class="floating-element w-24 h-24 bottom-10 left-1/4"></div>
+
+        <div class="container mx-auto px-6 relative z-10">
+          <h1
+            class="text-5xl md:text-7xl font-extrabold text-gray-800 leading-tight"
+          >
+            Find Your Perfect Internship with
+            <span class="hero-gradient-text">AI Precision</span>
+          </h1>
+          <p class="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            Stop searching, start matching. Lumo analyzes your resume to connect
+            you with internship opportunities that align with your skills and
+            career goals.
+          </p>
+          <button
+            class="mt-10 bg-blue-600 text-white font-bold text-lg px-8 py-4 rounded-lg shadow-lg hover:bg-blue-700 transition transform hover:scale-105"
+          >
+            Get Started for Free
+          </button>
+        </div>
+      </section>
+
+      <section class="how-it-works-section">
+        <div class="container">
+          <div class="header-section">
+            <h1>How Lumo Works</h1>
+            <p>Your Path to the Perfect Internship, Simplified.</p>
+          </div>
+
+          <div class="timeline-container">
+            <svg
+              class="timeline-svg-path"
+              viewbox="0 0 80 1400"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M 40,0 C 80,150 0,250 40,350 C 80,450 0,550 40,700 C 80,850 0,950 40,1050 C 80,1200 0,1300 40,1400"
+                stroke="#dcdcdc"
+                stroke-width="3"
+                fill="none"
+              />
+            </svg>
+            <div class="timeline-dot dot-1"></div>
+            <div class="timeline-dot dot-2"></div>
+            <div class="timeline-dot dot-3"></div>
+            <div class="timeline-dot dot-4"></div>
+            <div class="timeline-item">
+              <div class="step-info">
+                <h3>1. Upload Your Resume</h3>
+                <p>
+                  Start your journey by uploading your latest resume. We accept
+                  common formats like PDF and DOCX for a quick and easy start.
                 </p>
-                <div class="d-flex gap-3">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
-                            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
-                        </a>
-                    {% else %}
-                        <a href="{% url 'register' %}" class="btn btn-light btn-lg">
-                            <i class="bi bi-person-plus me-2"></i>Get Started
-                        </a>
-                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                        </a>
-                    {% endif %}
-                </div>
+              </div>
             </div>
-            <div class="col-lg-6 text-center">
-                <i class="bi bi-diagram-3 display-1 opacity-75"></i>
+            <div class="timeline-item">
+              <div class="step-info">
+                <h3>2. AI Parsing & Analysis</h3>
+                <p>
+                  Our advanced AI analyzes your resume, intelligently
+                  identifying your key skills, experiences, and qualifications
+                  to build your profile.
+                </p>
+              </div>
             </div>
+            <div class="timeline-item">
+              <div class="step-info">
+                <h3>3. Get Personalized Matches</h3>
+                <p>
+                  Lumo recommends the most relevant internships and jobs
+                  tailored just for you, matching your unique profile with top
+                  opportunities.
+                </p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="step-info">
+                <h3>4. Apply with Confidence</h3>
+                <p>
+                  Directly apply to your chosen roles through Lumo, knowing
+                  you're a great fit. Increase your chances of getting hired.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
-</div>
+      </section>
 
-<!-- Features Section -->
-<div class="container py-5">
-    <div class="row text-center mb-5">
-        <div class="col-12">
-            <h2 class="text-lumo mb-3">Why Choose LUMO?</h2>
-            <p class="lead text-muted">Everything you need to land your dream internship</p>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-robot display-4 text-lumo mb-3"></i>
-                    <h5 class="card-title">AI-Powered Matching</h5>
-                    <p class="card-text">Our AI analyzes your resume and matches you with the most relevant internship opportunities.</p>
+      <section class="features">
+        <div class="container">
+          <div class="header-section">
+            <h1>Our Awesome Features</h1>
+            <p>
+              Discover how Lumo simplifies your journey to the perfect
+              internship.
+            </p>
+          </div>
+          <div class="cards-carousel-container">
+            <div class="cards-wrapper" id="cardsWrapper">
+              <div class="feature-card">
+                <div class="icon-box blue-bg">
+                  <i class="fas fa-file-upload"></i>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-file-earmark-pdf display-4 text-lumo mb-3"></i>
-                    <h5 class="card-title">Resume Analysis</h5>
-                    <p class="card-text">Upload your resume and get instant parsing with skill extraction and optimization suggestions.</p>
+                <h3>Upload Resume</h3>
+                <p>
+                  Seamlessly upload your resume in various formats to kickstart
+                  your profile.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box red-bg"><i class="fas fa-brain"></i></div>
+                <h3>AI Matchmaking</h3>
+                <p>
+                  Our intelligent AI analyzes your skills to find the best
+                  internship matches for you.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box green-bg">
+                  <i class="fas fa-briefcase"></i>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-book display-4 text-lumo mb-3"></i>
-                    <h5 class="card-title">Interview Preparation</h5>
-                    <p class="card-text">Practice with coding challenges, quiz questions, and mock interview sessions.</p>
+                <h3>Explore Jobs</h3>
+                <p>
+                  Browse through a wide array of internship and job
+                  opportunities tailored for you.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box purple-bg">
+                  <i class="fas fa-check-circle"></i>
                 </div>
+                <h3>Easy Apply</h3>
+                <p>
+                  Apply to your dream internships with just a few clicks,
+                  hassle-free process.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box orange-bg">
+                  <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3>Training Programs</h3>
+                <p>
+                  Enhance your skills with our curated training programs and
+                  expert-led courses.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box darkblue-bg">
+                  <i class="fas fa-headset"></i>
+                </div>
+                <h3>24/7 Support</h3>
+                <p>
+                  Get assistance whenever you need it with our dedicated
+                  customer support team.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box teal-bg">
+                  <i class="fas fa-globe-americas"></i>
+                </div>
+                <h3>Global Opportunities</h3>
+                <p>
+                  Discover internships and jobs from leading companies
+                  worldwide.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="feature-card">
+                <div class="icon-box brown-bg">
+                  <i class="fas fa-user-tie"></i>
+                </div>
+                <h3>Career Guidance</h3>
+                <p>
+                  Receive expert advice and resources to navigate your career
+                  path successfully.
+                </p>
+                <a href="#" class="read-more"
+                  >Read more <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
             </div>
+            <div class="carousel-controls">
+              <button
+                id="prevBtn"
+                class="carousel-control-btn"
+                aria-label="Previous Feature"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                id="nextBtn"
+                class="carousel-control-btn"
+                aria-label="Next Feature"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
-</div>
+      </section>
 
-<!-- How It Works Section -->
-<div class="bg-light py-5">
-    <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="text-lumo mb-3">How It Works</h2>
-                <p class="lead text-muted">Get started in just a few simple steps</p>
+      <section class="map-section">
+        <div class="container">
+          <div class="header-section">
+            <h1>Explore Opportunities Across India</h1>
+            <p>
+              Discover internships and jobs in every state and union territory.
+            </p>
+          </div>
+          <div class="map-container-wrapper">
+            <div id="map"></div>
+            <div class="stats">
+              <div class="stat-card gradient-main">
+                <h2>118K+</h2>
+                <p>Internship Opportunities</p>
+              </div>
+              <div style="display: flex; gap: 20px">
+                <div class="stat-card gradient-green" style="flex: 1">
+                  <h2>25</h2>
+                  <p>Sectors</p>
+                </div>
+                <div class="stat-card gradient-blue" style="flex: 1">
+                  <h2>36</h2>
+                  <p>States/UTs</p>
+                </div>
+              </div>
+              <div style="display: flex; gap: 20px">
+                <div class="stat-card gradient-grey" style="flex: 1">
+                  <h2>734</h2>
+                  <p>Districts</p>
+                </div>
+                <div class="stat-card gradient-yellow" style="flex: 1">
+                  <h2>5</h2>
+                  <p>Qualifications</p>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-        
-        <div class="row">
-            <div class="col-md-3 mb-4 text-center">
-                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                    <span class="fw-bold">1</span>
-                </div>
-                <h5>Sign Up</h5>
-                <p class="text-muted">Create your account and set up your profile</p>
-            </div>
-            
-            <div class="col-md-3 mb-4 text-center">
-                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                    <span class="fw-bold">2</span>
-                </div>
-                <h5>Upload Resume</h5>
-                <p class="text-muted">Upload your resume for AI-powered analysis</p>
-            </div>
-            
-            <div class="col-md-3 mb-4 text-center">
-                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                    <span class="fw-bold">3</span>
-                </div>
-                <h5>Get Matched</h5>
-                <p class="text-muted">Receive personalized internship recommendations</p>
-            </div>
-            
-            <div class="col-md-3 mb-4 text-center">
-                <div class="bg-lumo text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                    <span class="fw-bold">4</span>
-                </div>
-                <h5>Prepare & Apply</h5>
-                <p class="text-muted">Use our training tools and apply with confidence</p>
-            </div>
-        </div>
-    </div>
-</div>
+      </section>
+    </main>
 
-<!-- CTA Section -->
-{% if not user.is_authenticated %}
-<div class="bg-lumo text-white py-5">
-    <div class="container text-center">
-        <h2 class="mb-3">Ready to Find Your Perfect Internship?</h2>
-        <p class="lead mb-4">Join thousands of students who have found success with LUMO</p>
-        <a href="{% url 'register' %}" class="btn btn-light btn-lg">
-            <i class="bi bi-person-plus me-2"></i>Start Your Journey
-        </a>
-    </div>
-</div>
-{% endif %}
-{% endblock %}
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-column">
+            <div class="logo">LUMO</div>
+            <p class="tagline">
+              Bridging ambition with opportunity. Your journey to a successful
+              career starts here.
+            </p>
+          </div>
+
+          <div class="footer-column">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="#">Internships</a></li>
+              <li><a href="#">Companies</a></li>
+              <li><a href="#">About Us</a></li>
+              <li><a href="#">My Profile</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-column">
+            <h3>For Students</h3>
+            <ul>
+              <li><a href="#">Search Internships</a></li>
+              <li><a href="#">Create Profile</a></li>
+              <li><a href="#">Application History</a></li>
+              <li><a href="#">Career Advice</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-column">
+            <h3>For Employers</h3>
+            <ul>
+              <li><a href="#">Post Internship</a></li>
+              <li><a href="#">View Applicants</a></li>
+              <li><a href="#">Employer Dashboard</a></li>
+              <li><a href="#">Contact Us</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2025 LUMO. All Rights Reserved.</p>
+          <div class="footer-legal-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Lumo website loaded successfully!");
+
+        // --- Center-Focused Carousel Logic ---
+        const cardsWrapper = document.getElementById("cardsWrapper");
+        const featureCards = Array.from(
+          cardsWrapper.getElementsByClassName("feature-card")
+        );
+        const totalCards = featureCards.length;
+        let activeIndex = 0;
+        let autoPlayInterval;
+        const autoPlayDelay = 3000;
+
+        function showCard(index) {
+          featureCards.forEach((card) => {
+            card.classList.remove("card-active", "card-prev", "card-next");
+          });
+          const prevIndex = (index - 1 + totalCards) % totalCards;
+          const nextIndex = (index + 1) % totalCards;
+          featureCards[index].classList.add("card-active");
+          featureCards[prevIndex].classList.add("card-prev");
+          featureCards[nextIndex].classList.add("card-next");
+        }
+
+        function nextCard() {
+          activeIndex = (activeIndex + 1) % totalCards;
+          showCard(activeIndex);
+          resetAutoPlay();
+        }
+
+        function prevCard() {
+          activeIndex = (activeIndex - 1 + totalCards) % totalCards;
+          showCard(activeIndex);
+          resetAutoPlay();
+        }
+
+        document.getElementById("nextBtn").addEventListener("click", nextCard);
+        document.getElementById("prevBtn").addEventListener("click", prevCard);
+
+        featureCards.forEach((card, index) => {
+          card.addEventListener("click", () => {
+            if (index !== activeIndex) {
+              activeIndex = index;
+              showCard(activeIndex);
+              resetAutoPlay();
+            }
+          });
+        });
+
+        function startAutoPlay() {
+          stopAutoPlay();
+          autoPlayInterval = setInterval(nextCard, autoPlayDelay);
+        }
+
+        function stopAutoPlay() {
+          clearInterval(autoPlayInterval);
+        }
+
+        function resetAutoPlay() {
+          stopAutoPlay();
+          startAutoPlay();
+        }
+
+        if (totalCards > 0) {
+          showCard(activeIndex);
+          startAutoPlay();
+
+          const carouselContainer = document.querySelector(
+            ".cards-carousel-container"
+          );
+          if (carouselContainer) {
+            carouselContainer.addEventListener("mouseenter", stopAutoPlay);
+            carouselContainer.addEventListener("mouseleave", startAutoPlay);
+          }
+        }
+
+        // --- Interactive Map Logic (FROM MAP.HTML) ---
+        var map = L.map("map", { zoomControl: false }).setView([22.0, 79.0], 5);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors",
+          opacity: 0.6,
+        }).addTo(map);
+
+        var statesData = {
+          "Andhra Pradesh": {
+            lat: 15.9129,
+            lng: 79.74,
+            population: "49.4M",
+            capital: "Amaravati",
+            area: "160,205 km²",
+            literacy: "67.4%",
+          },
+          "Arunachal Pradesh": {
+            lat: 28.218,
+            lng: 94.7278,
+            population: "1.4M",
+            capital: "Itanagar",
+            area: "83,743 km²",
+            literacy: "65.4%",
+          },
+          Assam: {
+            lat: 26.2006,
+            lng: 92.9376,
+            population: "31.2M",
+            capital: "Dispur",
+            area: "78,438 km²",
+            literacy: "72.2%",
+          },
+          Bihar: {
+            lat: 25.0961,
+            lng: 85.3131,
+            population: "104.1M",
+            capital: "Patna",
+            area: "94,163 km²",
+            literacy: "61.8%",
+          },
+          Chhattisgarh: {
+            lat: 21.2787,
+            lng: 81.8661,
+            population: "25.5M",
+            capital: "Raipur",
+            area: "135,192 km²",
+            literacy: "70.3%",
+          },
+          Goa: {
+            lat: 15.2993,
+            lng: 74.124,
+            population: "1.5M",
+            capital: "Panaji",
+            area: "3,702 km²",
+            literacy: "88.7%",
+          },
+          Gujarat: {
+            lat: 22.2587,
+            lng: 71.1924,
+            population: "60.4M",
+            capital: "Gandhinagar",
+            area: "196,244 km²",
+            literacy: "78.0%",
+          },
+          Haryana: {
+            lat: 29.0588,
+            lng: 76.0856,
+            population: "25.4M",
+            capital: "Chandigarh",
+            area: "44,212 km²",
+            literacy: "75.6%",
+          },
+          "Himachal Pradesh": {
+            lat: 31.1048,
+            lng: 77.1734,
+            population: "6.9M",
+            capital: "Shimla",
+            area: "55,673 km²",
+            literacy: "82.8%",
+          },
+          Jharkhand: {
+            lat: 23.6102,
+            lng: 85.2799,
+            population: "33.0M",
+            capital: "Ranchi",
+            area: "79,716 km²",
+            literacy: "66.4%",
+          },
+          Karnataka: {
+            lat: 15.3173,
+            lng: 75.7139,
+            population: "61.1M",
+            capital: "Bengaluru",
+            area: "191,791 km²",
+            literacy: "75.4%",
+          },
+          Kerala: {
+            lat: 10.8505,
+            lng: 76.2711,
+            population: "33.4M",
+            capital: "Thiruvananthapuram",
+            area: "38,852 km²",
+            literacy: "94.0%",
+          },
+          "Madhya Pradesh": {
+            lat: 22.9734,
+            lng: 78.6569,
+            population: "72.6M",
+            capital: "Bhopal",
+            area: "308,245 km²",
+            literacy: "69.3%",
+          },
+          Maharashtra: {
+            lat: 19.7515,
+            lng: 75.7139,
+            population: "112.4M",
+            capital: "Mumbai",
+            area: "307,713 km²",
+            literacy: "82.3%",
+          },
+          Manipur: {
+            lat: 24.6637,
+            lng: 93.9063,
+            population: "2.9M",
+            capital: "Imphal",
+            area: "22,327 km²",
+            literacy: "79.2%",
+          },
+          Meghalaya: {
+            lat: 25.467,
+            lng: 91.3662,
+            population: "3.0M",
+            capital: "Shillong",
+            area: "22,429 km²",
+            literacy: "74.4%",
+          },
+          Mizoram: {
+            lat: 23.1645,
+            lng: 92.9376,
+            population: "1.1M",
+            capital: "Aizawl",
+            area: "21,081 km²",
+            literacy: "91.3%",
+          },
+          Nagaland: {
+            lat: 26.1584,
+            lng: 94.5624,
+            population: "2.0M",
+            capital: "Kohima",
+            area: "16,579 km²",
+            literacy: "79.6%",
+          },
+          Odisha: {
+            lat: 20.9517,
+            lng: 85.0985,
+            population: "42.0M",
+            capital: "Bhubaneswar",
+            area: "155,707 km²",
+            literacy: "72.9%",
+          },
+          Punjab: {
+            lat: 31.1471,
+            lng: 75.3412,
+            population: "27.7M",
+            capital: "Chandigarh",
+            area: "50,362 km²",
+            literacy: "75.8%",
+          },
+          Rajasthan: {
+            lat: 27.0238,
+            lng: 74.2179,
+            population: "68.5M",
+            capital: "Jaipur",
+            area: "342,239 km²",
+            literacy: "66.1%",
+          },
+          Sikkim: {
+            lat: 27.533,
+            lng: 88.5122,
+            population: "0.6M",
+            capital: "Gangtok",
+            area: "7,096 km²",
+            literacy: "81.4%",
+          },
+          "Tamil Nadu": {
+            lat: 11.1271,
+            lng: 78.6569,
+            population: "72.1M",
+            capital: "Chennai",
+            area: "130,060 km²",
+            literacy: "80.1%",
+          },
+          Telangana: {
+            lat: 18.1124,
+            lng: 79.0193,
+            population: "35.0M",
+            capital: "Hyderabad",
+            area: "112,077 km²",
+            literacy: "66.5%",
+          },
+          Tripura: {
+            lat: 23.9408,
+            lng: 91.9882,
+            population: "3.7M",
+            capital: "Agartala",
+            area: "10,486 km²",
+            literacy: "87.2%",
+          },
+          "Uttar Pradesh": {
+            lat: 26.8467,
+            lng: 80.9462,
+            population: "199.8M",
+            capital: "Lucknow",
+            area: "240,928 km²",
+            literacy: "67.7%",
+          },
+          Uttarakhand: {
+            lat: 30.0668,
+            lng: 79.0193,
+            population: "10.1M",
+            capital: "Dehradun",
+            area: "53,483 km²",
+            literacy: "78.8%",
+          },
+          "West Bengal": {
+            lat: 22.9868,
+            lng: 87.855,
+            population: "91.3M",
+            capital: "Kolkata",
+            area: "88,752 km²",
+            literacy: "76.3%",
+          },
+          Delhi: {
+            lat: 28.7041,
+            lng: 77.1025,
+            population: "16.8M",
+            capital: "New Delhi",
+            area: "1,484 km²",
+            literacy: "86.3%",
+          },
+          "Jammu and Kashmir": {
+            lat: 34.0837,
+            lng: 74.7973,
+            population: "12.5M",
+            capital: "Srinagar",
+            area: "55,673 km²",
+            literacy: "68.7%",
+          },
+          Ladakh: {
+            lat: 34.1526,
+            lng: 77.5771,
+            population: "0.3M",
+            capital: "Leh",
+            area: "59,146 km²",
+            literacy: "62.5%",
+          },
+        };
+
+        function createAnimatedDot(state, data) {
+          var circle = L.circleMarker([data.lat, data.lng], {
+            radius: 8,
+            fillColor: "#2563eb",
+            color: "#ffffff",
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.8,
+          });
+
+          var pulseInterval = setInterval(function () {
+            if (map.hasLayer(circle)) {
+              circle.setRadius(circle.getRadius() === 8 ? 12 : 8);
+              circle.setStyle({
+                fillOpacity: circle.options.fillOpacity === 0.8 ? 0.5 : 0.8,
+              });
+            } else {
+              clearInterval(pulseInterval);
+            }
+          }, 1000);
+
+          circle.on("mouseover", function () {
+            var tooltipContent = `
+                  <div class="tooltip-title">${state}</div>
+                  <div><strong>Population:</strong> ${data.population}</div>
+                  <div><strong>Capital:</strong> ${data.capital}</div>
+                  <div><strong>Area:</strong> ${data.area}</div>
+                  <div><strong>Literacy Rate:</strong> ${data.literacy}</div>
+                `;
+
+            circle
+              .bindTooltip(tooltipContent, {
+                permanent: false,
+                direction: "top",
+                offset: [0, -15],
+              })
+              .openTooltip();
+
+            circle.setStyle({
+              radius: 10,
+              fillColor: "#1d4ed8",
+              fillOpacity: 1,
+            });
+          });
+
+          circle.on("mouseout", function () {
+            circle.closeTooltip();
+            circle.setStyle({
+              radius: 8,
+              fillColor: "#2563eb",
+              fillOpacity: 0.8,
+            });
+          });
+
+          return circle;
+        }
+
+        Object.keys(statesData).forEach(function (state) {
+          var data = statesData[state];
+          var dot = createAnimatedDot(state, data);
+          dot.addTo(map);
+        });
+
+        var indiaStatesUrl =
+          "https://raw.githubusercontent.com/geohacker/india/master/state/india_telengana.geojson";
+
+        function onEachStateFeature(feature, layer) {
+          var stateName = feature.properties.st_nm;
+
+          layer.on("mouseover", function (e) {
+            var layer = e.target;
+
+            layer.setStyle({
+              weight: 4,
+              color: "#fb923c",
+              fillColor: "#fed7aa",
+              fillOpacity: 0.8,
+              dashArray: "",
+            });
+
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+              layer.bringToFront();
+            }
+
+            if (layer._path) {
+              layer._path.classList.add("state-hover-effect");
+            }
+
+            var data = statesData[stateName];
+            if (data) {
+              var tooltipContent = `
+                    <div class="tooltip-title">${stateName}</div>
+                    <div><strong>Population:</strong> ${data.population}</div>
+                    <div><strong>Capital:</strong> ${data.capital}</div>
+                    <div><strong>Area:</strong> ${data.area}</div>
+                    <div><strong>Literacy Rate:</strong> ${data.literacy}</div>
+                  `;
+
+              layer
+                .bindTooltip(tooltipContent, {
+                  permanent: false,
+                  direction: "auto",
+                  offset: [0, -5],
+                })
+                .openTooltip();
+            }
+          });
+
+          layer.on("mouseout", function (e) {
+            var layer = e.target;
+
+            layer.setStyle({
+              color: "#000000",
+              weight: 2,
+              fillColor: "transparent",
+              fillOpacity: 0,
+              dashArray: "",
+            });
+
+            if (layer._path) {
+              layer._path.classList.remove("state-hover-effect");
+            }
+
+            layer.closeTooltip();
+          });
+
+          layer.on("click", function (e) {
+            e.originalEvent.preventDefault();
+          });
+        }
+
+        fetch(indiaStatesUrl)
+          .then((res) => res.json())
+          .then((data) => {
+            L.geoJSON(data, {
+              style: {
+                color: "#000000",
+                weight: 2,
+                fillColor: "transparent",
+                fillOpacity: 0,
+              },
+              onEachFeature: onEachStateFeature,
+            }).addTo(map);
+          })
+          .catch((err) => {
+            console.log(
+              "Could not load state boundaries, but dots will still work"
+            );
+          });
+
+        var indiaBounds = [
+          [6, 68],
+          [37, 97],
+        ];
+        map.setMaxBounds(indiaBounds);
+        map.on("drag", function () {
+          map.panInsideBounds(indiaBounds, { animate: false });
+        });
+      });
+    </script>
+  </body>
+</html>
